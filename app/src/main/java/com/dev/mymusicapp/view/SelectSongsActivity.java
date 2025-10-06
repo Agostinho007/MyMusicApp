@@ -82,7 +82,7 @@ public class SelectSongsActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    // Método para finalizar a activity e devolver os dados
+
     private void returnSelectedSongs() {
         // Pede ao adapter a lista de músicas selecionadas
         ArrayList<Song> selectedSongs = adapter.getSelectedSongs();

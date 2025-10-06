@@ -173,7 +173,6 @@ public class PlayerActivity extends AppCompatActivity implements PlayerContract.
         return super.onOptionsItemSelected(item);
     }
 
-    //ESTE É O MÉTODO QUE EXECUTA A ANIMAÇÃO
     @Override
     public void toggleDetailsView(boolean show, Song song) {
         // 1. Prepara a animação no contentor raiz da nossa Activity

@@ -160,7 +160,6 @@ public class PlaylistDetailActivity extends AppCompatActivity implements SongAda
         });
     }
 
-    //Método para atualizar o destaque
     private void updateHighlight() {
         if (isBound && musicService != null && songAdapter != null) {
             Song currentSong = musicService.getCurrentPlayingSong();
@@ -190,7 +189,6 @@ public class PlaylistDetailActivity extends AppCompatActivity implements SongAda
         });
     }
 
-    // ATUALIZADO: O método agora recebe a View
     @Override
     public void onSongClick(Song song, View albumArtView) {
         Intent intent = new Intent(this, PlayerActivity.class);
@@ -222,12 +220,11 @@ public class PlaylistDetailActivity extends AppCompatActivity implements SongAda
                 .setIcon(R.drawable.ic_delete_warning) // Reutilizamos o mesmo ícone
                 .setNegativeButton("Não", null)
                 .setPositiveButton("Sim, remover", (dialog, which) -> {
-                    deleteSongFromPlaylist(song); // Chamamos um método dedicado para maior clareza
+                    deleteSongFromPlaylist(song);
                 })
                 .show();
     }
 
-    //Método dedicado para apagar a música
     private void deleteSongFromPlaylist(Song song) {
         executorService.execute(() -> {
             db.playlistDao().deleteSongFromPlaylist(playlistId, song.getDataPath());

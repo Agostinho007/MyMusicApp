@@ -26,7 +26,6 @@ public class SelectSongsAdapter extends RecyclerView.Adapter<SelectSongsAdapter.
         notifyDataSetChanged();
     }
 
-    // Método para a Activity obter as músicas selecionadas no final
     public ArrayList<Song> getSelectedSongs() {
         ArrayList<Song> selectedSongs = new ArrayList<>();
         for (Song song : allSongs) {
