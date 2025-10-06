@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="fab_recognize_translation_y">76dp</dimen>
+
+    <dimen name="fab_playlists_translation_y">140dp</dimen>
+</resources>
