@@ -23,7 +23,7 @@ public class SongRepository {
                 MediaStore.Audio.Media.ARTIST,
                 MediaStore.Audio.Media.DATA,
                 MediaStore.Audio.Media.DURATION,
-                MediaStore.Audio.Media.ALBUM_ID // NOVO
+                MediaStore.Audio.Media.ALBUM_ID
         };
 
         String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0";
@@ -35,7 +35,7 @@ public class SongRepository {
             int artistColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
             int dataColumn = cursor.getColumnIndex(MediaStore.Audio.Media.DATA);
             int durationColumn = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
-            int albumIdColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID); // NOVO
+            int albumIdColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID);
 
             do {
                 long id = cursor.getLong(idColumn);
