@@ -36,7 +36,7 @@ public class SongRepository {
             int dataColumn = cursor.getColumnIndex(MediaStore.Audio.Media.DATA);
             int durationColumn = cursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
             int albumIdColumn = cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID);
-
+//
             do {
                 long id = cursor.getLong(idColumn);
                 String title = cursor.getString(titleColumn);
