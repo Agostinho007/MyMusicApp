@@ -63,7 +63,7 @@ public class PlaylistsActivity extends AppCompatActivity implements PlaylistAdap
 
 
     /**
-     * Método principal do ciclo de vida, chamado quando a Activity é criada.
+     * Metodo principal do ciclo de vida, chamado quando a Activity é criada.
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -249,7 +249,7 @@ public class PlaylistsActivity extends AppCompatActivity implements PlaylistAdap
 
     /**
      * Callback principal da ACRCloud com o resultado do reconhecimento.
-     * Este método é chamado numa thread de background pelo SDK.
+     * Este metodo é chamado numa thread de background pelo SDK.
      */
     @Override
     public void onResult(ACRCloudResult acrCloudResult) {

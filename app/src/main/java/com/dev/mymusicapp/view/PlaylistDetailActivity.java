@@ -67,7 +67,7 @@ public class PlaylistDetailActivity extends AppCompatActivity implements SongAda
                     // Se o resultado for OK, extrai a lista de músicas selecionadas.
                     List<Song> selectedSongs = (List<Song>) result.getData().getSerializableExtra("SELECTED_SONGS");
                     if (selectedSongs != null && !selectedSongs.isEmpty()) {
-                        // Chama o método para adicionar as músicas à base de dados.
+                        // Chama o metodo para adicionar as músicas à base de dados.
                         addSongsToPlaylist(selectedSongs);
                     }
                 }

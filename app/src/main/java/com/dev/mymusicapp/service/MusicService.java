@@ -53,7 +53,7 @@ public class MusicService extends Service {
     private static final int NOTIFICATION_ID = 1;
 
     /**
-     * Classe interna que estende Binder. A sua única função é fornecer um método
+     * Classe interna que estende Binder. A sua única função é fornecer um metodo
      * para que os clientes (Activities) obtenham uma referência direta a este MusicService.
      */
     public class MusicBinder extends Binder {
