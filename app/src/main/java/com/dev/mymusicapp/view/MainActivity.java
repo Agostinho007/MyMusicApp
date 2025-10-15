@@ -60,7 +60,6 @@ public class MainActivity extends AppCompatActivity implements SongAdapter.OnSon
 
     private static final int PERMISSION_REQUEST_CODE = 101;
     private static final int PERMISSION_RECORD_AUDIO_CODE = 103;
-
     private static final int ALL_PERMISSIONS_REQUEST_CODE = 105;
     private ActivityMainBinding binding;
     private SongRepository songRepository;
@@ -78,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements SongAdapter.OnSon
     private Player.Listener playerListener;
 
     private final ServiceConnection connection = new ServiceConnection() {
+        // Inicializacao do Serivce Connection
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             MusicService.MusicBinder binder = (MusicService.MusicBinder) service;
@@ -154,6 +154,7 @@ public class MainActivity extends AppCompatActivity implements SongAdapter.OnSon
     }
 
     private void updateHighlight() {
+        // Logica que deixa a musica actual destacada numa posicao visivel
         if (isBound && musicService != null && songAdapter != null) {
             Song currentSong = musicService.getCurrentPlayingSong();
             if (currentSong != null) {
@@ -246,6 +247,7 @@ public class MainActivity extends AppCompatActivity implements SongAdapter.OnSon
 
 
     private void setupFabMenu() {
+        // Logica do Multi-Fab
 
         binding.fabMain.setOnClickListener(v -> {
             if (isFabMenuOpen) {
@@ -300,13 +302,12 @@ public class MainActivity extends AppCompatActivity implements SongAdapter.OnSon
     }
 
     //LÓGICA DA ACRCloud
-
     private void setupAcrCloud() {
         acrCloudConfig = new ACRCloudConfig();
         acrCloudConfig.context = this;
-        acrCloudConfig.host = "identify-eu-west-1.acrcloud.com";
-        acrCloudConfig.accessKey = "ebdbf94f27585e9638cd1a46a50dd2cd";
-        acrCloudConfig.accessSecret = "PLGnkKGkWNJWNkkeSfHut28SG5me338O4jcBmvwR";
+        acrCloudConfig.host = "identify-eu-west-1.acrcloud.com"; // Host
+        acrCloudConfig.accessKey = "ebdbf94f27585e9638cd1a46a50dd2cd"; // Chave Secreta
+        acrCloudConfig.accessSecret = "PLGnkKGkWNJWNkkeSfHut28SG5me338O4jcBmvwR"; // Acesso Secreto
         acrCloudConfig.acrcloudListener = this;
 
 
@@ -320,6 +321,8 @@ public class MainActivity extends AppCompatActivity implements SongAdapter.OnSon
         Log.d("ACRCloud", "SDK Init Success: " + success);
     }
 
+
+    // Metodo para Verificar se as permissoes necessarias para iniciar o reconhecimento ja foram permitidas
     private void checkAndStartRecognition() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
             startRecognition();
@@ -329,6 +332,7 @@ public class MainActivity extends AppCompatActivity implements SongAdapter.OnSon
     }
 
     private void startRecognition() {
+        // Metodo para iniciar o reconhecimento de Musica
         if (isRecognizing) return;
 
         isRecognizing = acrCloudClient.startRecognize();
@@ -356,6 +360,7 @@ public class MainActivity extends AppCompatActivity implements SongAdapter.OnSon
 
     @Override
     public void onSongClick(Song song, View albumArtView) {
+        // Metodo para que quando clicamos numa musica em andamento, nao a reinicie
         Intent intent = new Intent(this, PlayerActivity.class);
 
         if (isBound && musicService != null && musicService.isSongPlaying(song.getDataPath())) {
@@ -366,6 +371,7 @@ public class MainActivity extends AppCompatActivity implements SongAdapter.OnSon
             intent.putExtra("CURRENT_POSITION", position);
         }
 
+        // Transicao para mudanca de tela
         ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
                 this,
                 albumArtView,
@@ -414,6 +420,7 @@ public class MainActivity extends AppCompatActivity implements SongAdapter.OnSon
     }
 
     private void showSuccessDialog(String title, String artist) {
+        // Metodo que mostra o resultado da busca por reconhecimento
         new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_AlertDialog_Neutral)
                 .setTitle("Música Encontrada")
                 .setIcon(R.drawable.ic_check_circle)
@@ -423,6 +430,7 @@ public class MainActivity extends AppCompatActivity implements SongAdapter.OnSon
     }
 
     private void showErrorDialog(String message) {
+        // Metodo que mostra o resultado de erro da busca por reconhecimento
         new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_AlertDialog_Neutral)
                 .setTitle("Não foi possível identificar")
                 .setIcon(R.drawable.ic_error)
@@ -431,17 +439,9 @@ public class MainActivity extends AppCompatActivity implements SongAdapter.OnSon
                 .show();
     }
 
-
-    private void showResultDialog(String title, String artist) {
-        new AlertDialog.Builder(this)
-                .setTitle("Música Encontrada")
-                .setMessage("Título: " + title + "\nArtista: " + artist)
-                .setPositiveButton("OK", null)
-                .show();
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        // Metodo que faculta o Menu presente na primeira tela com a barra de pesquisa
         getMenuInflater().inflate(R.menu.main_menu, menu);
         MenuItem searchItem = menu.findItem(R.id.action_search);
         SearchView searchView = (SearchView) searchItem.getActionView();
@@ -458,7 +458,7 @@ public class MainActivity extends AppCompatActivity implements SongAdapter.OnSon
         return true;
     }
 
-
+    //  Filtro com base na escrita ou texto
     private void filterSongs(String text) {
         List<Song> filteredList = new ArrayList<>();
         if (text.isEmpty()) {
@@ -483,6 +483,7 @@ public class MainActivity extends AppCompatActivity implements SongAdapter.OnSon
     }
 
     private void loadSongs() {
+        // Processa as Musicas presentes do dispositivo
         binding.progressBar.setVisibility(View.VISIBLE);
         this.fullSongList = songRepository.getSongs(this);
         songAdapter.setSongs(this.fullSongList);

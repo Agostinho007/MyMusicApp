@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -50,20 +51,24 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-    // ExoPlayer - O nosso leitor de música
+    // Firebase - Para AppDistribuition
+    implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    // ExoPlayer - Para o leitor de música
     implementation("androidx.media3:media3-exoplayer:1.8.0")
     implementation("androidx.media3:media3-ui:1.8.0")
     implementation("androidx.media3:media3-session:1.8.0")
 
-    // Room - Para o nosso banco de dados de playlists
+    // Room - Para o banco de dados de playlists
     val roomVersion = "2.8.1"
     implementation("androidx.room:room-runtime:$roomVersion")
-    annotationProcessor("androidx.room:room-compiler:$roomVersion") // Correto para projetos Java
+    annotationProcessor("androidx.room:room-compiler:$roomVersion")
 
     // RecyclerView e CardView - Para as listas
     implementation("androidx.recyclerview:recyclerview:1.4.0")
     implementation("androidx.cardview:cardview:1.0.0")
 
+    // Material Design - Para interfaces e alertas
     implementation("com.google.android.material:material:1.13.0")
 
     // Glide - Para carregar as capas dos álbuns

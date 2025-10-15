@@ -1,5 +1,6 @@
 package com.dev.mymusicapp.view;
 
+// Imports de componentes do Android e bibliotecas
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.ComponentName;
@@ -40,70 +41,114 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * PlayerActivity é a "View" para a tela do player de música.
+ * A sua responsabilidade é apenas exibir a interface e reportar as interações do utilizador ao Presenter.
+ * Ela implementa PlayerContract.View para obedecer aos comandos do Presenter,
+ * e SongAdapter.OnSongClickListener para reagir a cliques na sua lista de músicas interna.
+ */
 public class PlayerActivity extends AppCompatActivity implements PlayerContract.View, SongAdapter.OnSongClickListener {
 
-    private ActivityPlayerBinding binding;
-    private PlayerContract.Presenter presenter;
-    private SongAdapter playerSongAdapter;
-    private ObjectAnimator rotationAnimator;
-    private boolean isBound = false;
-    private Menu optionsMenu;
+    // --- Variáveis de Membro ---
+    private ActivityPlayerBinding binding; // Objeto de ViewBinding para aceder às Views do layout de forma segura.
+    private PlayerContract.Presenter presenter; // Referência ao Presenter que contém a lógica de negócio.
+    private SongAdapter playerSongAdapter; // Adapter para o RecyclerView que mostra a lista "A Seguir".
+    private ObjectAnimator rotationAnimator; // Animador para a rotação da capa do álbum.
+    private boolean isBound = false; // Flag para controlar o estado da conexão com o MusicService.
+    private Menu optionsMenu; // Referência ao menu da Toolbar para poder alterá-lo dinamicamente.
 
+    /**
+     * Objeto anónimo que gere a conexão (bind) com o MusicService.
+     */
     private final ServiceConnection connection = new ServiceConnection() {
+        /**
+         * Chamado quando a conexão com o serviço é estabelecida.
+         */
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             MusicService.MusicBinder binder = (MusicService.MusicBinder) service;
+            // Notifica o Presenter que a conexão foi bem-sucedida, passando a instância do serviço.
             presenter.onServiceConnected(binder.getService());
+            isBound = true;
         }
 
+        /**
+         * Chamado quando a conexão com o serviço é perdida inesperadamente.
+         */
         @Override
         public void onServiceDisconnected(ComponentName name) {
             presenter.onServiceDisconnected();
+            isBound = false;
         }
     };
 
+    /**
+     * Metodo principal do ciclo de vida da Activity, chamado quando ela é criada.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Infla o layout e configura o ViewBinding.
         binding = ActivityPlayerBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        // Define a nossa Toolbar como a ActionBar da atividade.
         setSupportActionBar(binding.toolbar);
 
+        // Cria uma instância do Presenter e anexa esta View (Activity) a ele.
         presenter = new PlayerPresenter(this);
         presenter.attachView(this);
 
+        // Chama métodos de configuração da UI.
         setupUI();
+        // Inicia ou conecta-se ao serviço de música.
         startMusicService();
     }
 
+    /**
+     * Agrupa as chamadas de configuração inicial da UI.
+     */
     private void setupUI() {
         setupPlayerRecyclerView();
         setupClickListeners();
         setupRotationAnimation();
+        // Configura o botão de "voltar" na Toolbar.
         binding.toolbar.setNavigationOnClickListener(v -> onBackPressed());
     }
 
+    /**
+     * Verifica se a Activity foi iniciada com uma nova lista de reprodução ou se deve
+     * apenas conectar-se a uma sessão de reprodução já existente.
+     */
     private void startMusicService() {
         Intent intent = getIntent();
         Intent serviceIntent = new Intent(this, MusicService.class);
         boolean startNewPlayback = intent != null && intent.hasExtra("SONG_LIST");
 
         if (startNewPlayback) {
+            // Se recebemos uma nova lista, passamos os dados para o serviço e iniciamo-lo.
             ArrayList<Song> songList = (ArrayList<Song>) intent.getSerializableExtra("SONG_LIST");
             int currentPosition = intent.getIntExtra("CURRENT_POSITION", 0);
             serviceIntent.putExtra("SONG_LIST", songList);
             serviceIntent.putExtra("CURRENT_POSITION", currentPosition);
             startService(serviceIntent);
         }
+        // Em ambos os casos (novo playback ou não), conectamo-nos ao serviço.
         bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE);
     }
 
+    /**
+     * Configura o RecyclerView interno da PlayerActivity.
+     */
     private void setupPlayerRecyclerView() {
-        playerSongAdapter = new SongAdapter(this, null); // Passa null para o longClickListener
+        playerSongAdapter = new SongAdapter(this, null); // Passa 'this' como listener de clique e 'null' para o clique longo.
         binding.playerRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         binding.playerRecyclerView.setAdapter(playerSongAdapter);
     }
 
+    /**
+     * Configura todos os listeners de clique para os botões.
+     * Cada clique apenas notifica o Presenter sobre o evento. A lógica não está aqui.
+     */
     private void setupClickListeners() {
         binding.playPauseButton.setOnClickListener(v -> presenter.onPlayPauseClicked());
         binding.nextButton.setOnClickListener(v -> presenter.onNextClicked());
@@ -115,51 +160,34 @@ public class PlayerActivity extends AppCompatActivity implements PlayerContract.
             @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {}
             @Override public void onStartTrackingTouch(SeekBar seekBar) {}
             @Override public void onStopTrackingTouch(SeekBar seekBar) {
+                // Notifica o Presenter quando o utilizador solta a SeekBar.
                 presenter.onSeekBarChanged(seekBar.getProgress());
             }
         });
     }
 
+    /**
+     * Callback do SongAdapter quando uma música na lista "A Seguir" é clicada.
+     */
     @Override
     public void onSongClick(Song song, View albumArtView) {
         int position = playerSongAdapter.getSongs().indexOf(song);
         presenter.onSongClickedInQueue(position);
     }
 
+    /**
+     * Cria e infla o menu de opções na Toolbar.
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.player_menu, menu);
-        this.optionsMenu = menu; // Guarda a referência do menu
+        this.optionsMenu = menu; // Guarda a referência do menu para poder alterá-lo mais tarde.
         return true;
     }
 
-    @Override
-    public void updateDetailsMenuTitle(boolean areDetailsVisible) {
-        if (optionsMenu != null) {
-            MenuItem detailsItem = optionsMenu.findItem(R.id.action_details);
-            if (detailsItem != null) {
-                if (areDetailsVisible) {
-                    detailsItem.setTitle("Ver Músicas"); // Texto quando os detalhes estão visíveis
-                } else {
-                    detailsItem.setTitle("Detalhes da Música"); // Texto padrão
-                }
-            }
-        }
-    }
-
-    @Override
-    public void showSongDetails(Song song) {
-        binding.titleTextView.setText(song.getTitle());
-        binding.artistTextView.setText(song.getArtist());
-
-        Glide.with(this)
-                .load(song.getAlbumArtUri())
-                .placeholder(R.drawable.album_art_placeholder)
-                .error(R.drawable.ic_music_note)
-                .circleCrop()
-                .into(binding.albumArtImageView);
-    }
-
+    /**
+     * Reage a cliques nos itens do menu da Toolbar.
+     */
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
@@ -173,29 +201,56 @@ public class PlayerActivity extends AppCompatActivity implements PlayerContract.
         return super.onOptionsItemSelected(item);
     }
 
+    // --- MÉTODOS DA INTERFACE PlayerContract.View ---
+    // Estes métodos são chamados pelo Presenter para comandar a Activity a fazer algo na UI.
+
+    @Override
+    public void updateDetailsMenuTitle(boolean areDetailsVisible) {
+        if (optionsMenu != null) {
+            MenuItem detailsItem = optionsMenu.findItem(R.id.action_details);
+            if (detailsItem != null) {
+                detailsItem.setTitle(areDetailsVisible ? "Ver Músicas" : "Detalhes da Música");
+            }
+        }
+    }
+
+    @Override
+    public void showSongDetails(Song song) {
+        binding.titleTextView.setText(song.getTitle());
+        binding.artistTextView.setText(song.getArtist());
+
+        Glide.with(this)
+                .load(song.getAlbumArtUri())
+                .placeholder(R.drawable.album_art_placeholder)
+                .error(R.drawable.ic_music_note) // Mostra a nota musical se não houver capa.
+                .circleCrop()
+                .into(binding.albumArtImageView);
+    }
+
+    /**
+     * Anima a troca entre a lista de músicas e o painel de detalhes.
+     */
     @Override
     public void toggleDetailsView(boolean show, Song song) {
-        // 1. Prepara a animação no contentor raiz da nossa Activity
+        // Prepara a animação no contentor raiz da Activity.
         TransitionManager.beginDelayedTransition((ViewGroup) binding.getRoot());
 
-        // 2. Muda a visibilidade dos contentores
         if (show) {
-            // Mostra os detalhes e esconde a playlist
+            // Mostra os detalhes e esconde a playlist.
             binding.playlistContainer.setVisibility(View.GONE);
             binding.detailsContainer.setVisibility(View.VISIBLE);
 
-            // Preenche os detalhes da música
+            // Preenche o texto com os detalhes da música.
             String details = "Título: " + song.getTitle() + "\n\n" +
                     "Artista: " + song.getArtist() + "\n\n" +
                     "Duração: " + formatTime(song.getDuration()) + "\n\n" +
                     "Caminho: " + song.getDataPath();
             binding.detailsText.setText(details);
         } else {
-            // Esconde os detalhes e mostra a playlist
+            // Esconde os detalhes e mostra a playlist.
             binding.detailsContainer.setVisibility(View.GONE);
             binding.playlistContainer.setVisibility(View.VISIBLE);
         }
-        // 3. O TransitionManager anima automaticamente a mudança entre GONE e VISIBLE
     }
 
     @Override
@@ -209,7 +264,7 @@ public class PlayerActivity extends AppCompatActivity implements PlayerContract.
     @Override
     public void showPlayIcon() {
         binding.playPauseButton.setImageResource(R.drawable.ic_play);
-        rotationAnimator.pause();
+        if (rotationAnimator.isRunning()) rotationAnimator.pause();
     }
 
     @Override
@@ -228,7 +283,7 @@ public class PlayerActivity extends AppCompatActivity implements PlayerContract.
         } else if (repeatMode == Player.REPEAT_MODE_ONE) {
             binding.repeatButton.setImageResource(R.drawable.ic_repeat_one);
             binding.repeatButton.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.teal_200)));
-        } else {
+        } else { // REPEAT_MODE_ALL
             binding.repeatButton.setImageResource(R.drawable.ic_repeat);
             binding.repeatButton.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(this, R.color.teal_200)));
         }
@@ -244,27 +299,8 @@ public class PlayerActivity extends AppCompatActivity implements PlayerContract.
     @Override
     public void scrollToCurrentSong(int position) {
         if (position >= 0 && binding.playerRecyclerView != null) {
-            // Usamos post para garantir que o scroll acontece depois do layout
-            binding.playerRecyclerView.post(() -> {
-                binding.playerRecyclerView.scrollToPosition(position);
-            });
+            binding.playerRecyclerView.post(() -> binding.playerRecyclerView.scrollToPosition(position));
         }
-    }
-
-    @Override
-    public void showSongInfoDialog(Song song) {
-        String details = "Título: " + song.getTitle() + "\n\n" +
-                "Artista: " + song.getArtist() + "\n\n" +
-                "Duração: " + formatTime(song.getDuration()) + "\n\n" +
-                "Caminho: " + song.getDataPath();
-
-        //Usamos o MaterialAlertDialogBuilder
-        new MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_App_AlertDialog_Neutral)
-                .setTitle("Detalhes da Música")
-                .setMessage(details)
-                .setIcon(R.drawable.ic_info) // NOVO: Adiciona o nosso ícone
-                .setPositiveButton("OK", null)
-                .show();
     }
 
     @Override
@@ -277,15 +313,16 @@ public class PlayerActivity extends AppCompatActivity implements PlayerContract.
         for (int i = 0; i < playlists.size(); i++) {
             playlistNames[i] = playlists.get(i).name;
         }
-
         new MaterialAlertDialogBuilder(this)
                 .setTitle("Adicionar à Playlist")
-                .setIcon(R.drawable.ic_playlist_add) // Adicionamos um ícone para clareza
-                .setItems(playlistNames, (dialog, which) -> {
-                    // A lógica de notificar o Presenter continua a mesma
-                    presenter.onPlaylistSelected(playlists.get(which), null);
-                })
+                .setIcon(R.drawable.ic_playlist_add)
+                .setItems(playlistNames, (dialog, which) -> presenter.onPlaylistSelected(playlists.get(which), null))
                 .show();
+    }
+
+    @Override
+    public void showSongInfoDialog(Song song) {
+
     }
 
     @Override
@@ -295,30 +332,45 @@ public class PlayerActivity extends AppCompatActivity implements PlayerContract.
 
     @Override
     public void updatePlaylist(List<Song> songs) {
-        playerSongAdapter.setSongs(songs);
+        if (playerSongAdapter != null) {
+            playerSongAdapter.setSongs(songs);
+        }
     }
 
+    /**
+     * Metodo auxiliar para formatar o tempo de milissegundos para o formato "mm:ss".
+     */
     private String formatTime(long millis) {
         long minutes = TimeUnit.MILLISECONDS.toMinutes(millis);
         long seconds = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(minutes);
         return String.format("%02d:%02d", minutes, seconds);
     }
 
+    /**
+     * Configura a animação de rotação da capa do álbum.
+     */
     private void setupRotationAnimation() {
         rotationAnimator = ObjectAnimator.ofFloat(binding.albumArtImageView, "rotation", 0f, 360f);
-        rotationAnimator.setDuration(30000);
+        rotationAnimator.setDuration(30000); // 30 segundos por rotação completa
         rotationAnimator.setRepeatCount(ValueAnimator.INFINITE);
-        rotationAnimator.setInterpolator(new LinearInterpolator());
+        rotationAnimator.setInterpolator(new LinearInterpolator()); // Velocidade constante
     }
 
+    /**
+     * Chamado quando a Activity está a ser destruída.
+     * É crucial libertar recursos aqui para evitar memory leaks.
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        // Avisa o Presenter para se desanexar da View.
         presenter.detachView();
+        // Se a Activity estiver conectada ao serviço, desconecta-se.
         if (isBound) {
             unbindService(connection);
             isBound = false;
         }
+        // Cancela a animação para libertar os seus recursos.
         if (rotationAnimator != null) {
             rotationAnimator.cancel();
         }

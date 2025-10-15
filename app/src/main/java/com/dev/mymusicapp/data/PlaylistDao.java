@@ -32,6 +32,7 @@ public interface PlaylistDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     void insertPlaylistSongCrossRef(PlaylistSongCrossRef crossRef);
 
+    // --- Operações de Relacionamento ---
     @Transaction
     @Query("SELECT * FROM playlists WHERE playlistId = :playlistId")
     PlaylistWithSongs getPlaylistWithSongs(int playlistId);
@@ -39,6 +40,7 @@ public interface PlaylistDao {
     @Query("DELETE FROM PlaylistSongCrossRef WHERE playlistId = :playlistId AND dataPath = :dataPath")
     void deleteSongFromPlaylist(int playlistId, @NonNull String dataPath);
 
+    // --- Operações de Playlist ---
     @Query("DELETE FROM playlists WHERE playlistId = :playlistId")
     void deletePlaylistById(int playlistId);
 
